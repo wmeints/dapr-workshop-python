@@ -1,5 +1,5 @@
-import requests
 from . import events
+from paho.mqtt.client import Client
 
 
 class ClientError(Exception):
@@ -10,31 +10,11 @@ class ClientError(Exception):
 class TrafficControlClient:
     def __init__(self, base_address: str):
         self.base_address = base_address
+        self.messaging_adapter = Client(client_id="simulation")
+        self.messaging_adapter.connect("localhost")
 
     def send_vehicle_entry(self, evt: events.VehicleRegistered):
-        request_headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
-
-        response = requests.post(
-            url=f"{self.base_address}/entrycam", 
-            data=evt.json(),
-            headers=request_headers)
-
-        if response.status_code != 200:
-            raise ClientError(f"Could not process vehicle entry request. Got status {response.status_code}: {str(response.content)}")
+        self.messaging_adapter.publish("trafficcontrol/entrycam", payload=evt.json())
 
     def send_vehicle_exit(self, evt: events.VehicleRegistered):
-        request_headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
-
-        response = requests.post(
-            url=f"{self.base_address}/exitcam", 
-            data=evt.json(),
-            headers=request_headers)
-
-        if response.status_code != 200:
-            raise ClientError(f"Could not process vehicle exit request. Got status {response.status_code}: {str(response.content)}")
+        self.messaging_adapter.publish("trafficcontrol/exitcam", payload=evt.json())
