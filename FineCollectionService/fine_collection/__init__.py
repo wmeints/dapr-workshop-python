@@ -2,12 +2,16 @@ from fastapi import FastAPI, Body
 from fastapi.responses import Response
 from . import models, settings, services, clients
 from os import environ
+from dapr.clients import DaprClient
 
 
 app = FastAPI()
 app_settings = settings.ApplicationSettings()
 
-license_key = app_settings.license_key
+with DaprClient() as client:
+    license_key = client.get_secret("trafficcontrol-secrets", "finecalculator.licensekey").secret["finecalculator.licensekey"]
+    print(f"Loaded license key from the Dapr secret store {license_key}")
+
 
 processor = services.ViolationProcessor(
     services.FineCalculator(license_key),
