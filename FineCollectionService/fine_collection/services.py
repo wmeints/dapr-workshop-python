@@ -1,3 +1,4 @@
+import requests
 from . import clients, models, templates
 
 
@@ -56,4 +57,14 @@ class ViolationProcessor:
             fine_text=fine_text
         )
 
-        # TODO: Send the fine notification per email
+        message_data = {
+            "data": message_body,
+            "operation": "create",
+            "metadata": {
+                    "subject": "Fine for exceeding the speed limit.",
+                    "emailTo": vehicle.ownerEmail,
+                    "emailFrom": "test@domain.org"
+            }
+        }
+
+        requests.post("http://localhost:3601/v1.0/bindings/sendmail", json=message_data)
